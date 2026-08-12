@@ -58,17 +58,17 @@ jobs:
           publish_seed() {
             VERSION="$1"
             MODE="$2"
-            SEED="release-seed/cyberaudio-${VERSION}.jar.b64"
+            PREFIX="release-seed/cyberaudio-${VERSION}.jar.b64.part"
             NOTES="release-notes/v${VERSION}.md"
             OUT="/tmp/CyberAudio-${VERSION}-MC1.21.11.jar"
             TAG="v${VERSION}"
 
-            [ -f "$SEED" ] || return 0
+            compgen -G "${PREFIX}*" >/dev/null || return 0
             if gh release view "$TAG" >/dev/null 2>&1; then
               return 0
             fi
 
-            base64 -d "$SEED" > "$OUT"
+            cat ${PREFIX}* | base64 -d > "$OUT"
             if [ "$MODE" = "prerelease" ]; then
               gh release create "$TAG" "$OUT" --target main --title "CyberAudio ${TAG}" --notes-file "$NOTES" --prerelease --latest=false
             else
