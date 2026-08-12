@@ -9,7 +9,6 @@ on:
       - 'gradle.properties'
       - 'settings.gradle'
       - 'release-notes/**'
-      - 'release-seed/**'
       - '.github/workflows/release.yml'
   workflow_dispatch:
 
@@ -34,49 +33,26 @@ jobs:
       - name: Build current version
         run: gradle --no-daemon build
 
-      - name: Publish current release
+      - name: Publish version if missing
         shell: bash
         run: |
           set -euo pipefail
           VERSION="$(grep '^mod_version=' gradle.properties | cut -d= -f2)"
           TAG="v${VERSION}"
           JAR="build/libs/cyberaudio-${VERSION}.jar"
-          if ! gh release view "$TAG" >/dev/null 2>&1; then
-            gh release create "$TAG" \
-              "$JAR#CyberAudio-${VERSION}-MC1.21.11.jar" \
-              --target main \
-              --title "CyberAudio ${TAG}" \
-              --notes-file "release-notes/${TAG}.md" \
-              --latest
+          NOTES="release-notes/${TAG}.md"
+
+          test -f "$JAR"
+          test -f "$NOTES"
+
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Release ${TAG} already exists; nothing to publish."
+            exit 0
           fi
 
-      - name: Publish historical seeded releases
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          publish_seed() {
-            VERSION="$1"
-            MODE="$2"
-            PREFIX="release-seed/cyberaudio-${VERSION}.jar.b64.part"
-            MARKER="release-seed/cyberaudio-${VERSION}.complete"
-            NOTES="release-notes/v${VERSION}.md"
-            OUT="/tmp/CyberAudio-${VERSION}-MC1.21.11.jar"
-            TAG="v${VERSION}"
-
-            [ -f "$MARKER" ] || return 0
-            compgen -G "${PREFIX}*" >/dev/null || return 0
-            if gh release view "$TAG" >/dev/null 2>&1; then
-              return 0
-            fi
-
-            cat ${PREFIX}* | base64 -d > "$OUT"
-            if [ "$MODE" = "prerelease" ]; then
-              gh release create "$TAG" "$OUT" --target main --title "CyberAudio ${TAG}" --notes-file "$NOTES" --prerelease --latest=false
-            else
-              gh release create "$TAG" "$OUT" --target main --title "CyberAudio ${TAG}" --notes-file "$NOTES" --latest=false
-            fi
-          }
-
-          publish_seed "0.1.0" "historical"
-          publish_seed "0.2.0" "prerelease"
+          gh release create "$TAG" \
+            "$JAR#CyberAudio-${VERSION}-MC1.21.11.jar" \
+            --target main \
+            --title "CyberAudio ${TAG}" \
+            --notes-file "$NOTES" \
+            --latest
