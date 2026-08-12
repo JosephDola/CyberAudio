@@ -59,10 +59,12 @@ jobs:
             VERSION="$1"
             MODE="$2"
             PREFIX="release-seed/cyberaudio-${VERSION}.jar.b64.part"
+            MARKER="release-seed/cyberaudio-${VERSION}.complete"
             NOTES="release-notes/v${VERSION}.md"
             OUT="/tmp/CyberAudio-${VERSION}-MC1.21.11.jar"
             TAG="v${VERSION}"
 
+            [ -f "$MARKER" ] || return 0
             compgen -G "${PREFIX}*" >/dev/null || return 0
             if gh release view "$TAG" >/dev/null 2>&1; then
               return 0
