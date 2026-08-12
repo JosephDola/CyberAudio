@@ -1,0 +1,61 @@
+plugins {
+    id 'net.fabricmc.fabric-loom-remap' version "${loom_version}"
+    id 'maven-publish'
+}
+
+version = project.mod_version
+group = project.maven_group
+base { archivesName = project.archives_base_name }
+
+repositories {
+    mavenCentral()
+    exclusiveContent {
+        forRepository {
+            maven { name = "Modrinth"; url = "https://api.modrinth.com/maven" }
+        }
+        filter { includeGroup "maven.modrinth" }
+    }
+}
+
+loom {
+    splitEnvironmentSourceSets()
+    mods {
+        "cyberaudio" {
+            sourceSet sourceSets.main
+            sourceSet sourceSets.client
+        }
+    }
+}
+
+dependencies {
+    minecraft "com.mojang:minecraft:${project.minecraft_version}"
+    mappings loom.officialMojangMappings()
+    modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+
+    // Optional compile-time integration. At runtime CyberAudio detects whether MCEF is installed.
+    modCompileOnly "maven.modrinth:bQhBuv7x:JLGheGoq"
+
+    implementation "com.googlecode.soundlibs:mp3spi:1.9.5.4"
+    implementation "com.googlecode.soundlibs:vorbisspi:1.0.3.3"
+    implementation "com.googlecode.soundlibs:tritonus-share:0.3.7.4"
+    include "com.googlecode.soundlibs:mp3spi:1.9.5.4"
+    include "com.googlecode.soundlibs:vorbisspi:1.0.3.3"
+    include "com.googlecode.soundlibs:tritonus-share:0.3.7.4"
+}
+
+processResources {
+    inputs.property "version", project.version
+    filesMatching("fabric.mod.json") { expand "version": project.version }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.release = 21
+    options.encoding = 'UTF-8'
+}
+
+java {
+    withSourcesJar()
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}
