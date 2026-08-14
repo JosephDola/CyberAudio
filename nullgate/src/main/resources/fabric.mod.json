@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "id": "nullgate",
+  "version": "${version}",
+  "name": "NULLGate",
+  "description": "Precise Nether portal fast-travel inspired by the NULL portal mechanic.",
+  "authors": ["Cybertron40000"],
+  "contact": {},
+  "license": "MIT",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "com.cybertron.nullgate.NullGateMod"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=0.19.0",
+    "minecraft": "1.21.11",
+    "java": ">=21",
+    "fabric-api": "*"
+  }
+}
