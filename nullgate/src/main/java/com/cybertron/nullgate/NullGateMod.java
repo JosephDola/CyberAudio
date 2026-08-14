@@ -59,7 +59,7 @@ public final class NullGateMod implements ModInitializer {
                                                                         DoubleArgumentType.getDouble(ctx, "x"),
                                                                         DoubleArgumentType.getDouble(ctx, "y"),
                                                                         DoubleArgumentType.getDouble(ctx, "z")
-                                                                ))))))
+                                                                )))))))
                         .then(Commands.literal("unbind").executes(ctx -> unbind(ctx.getSource())))
                         .then(Commands.literal("info").executes(ctx -> info(ctx.getSource())))
                         .then(Commands.literal("count").executes(ctx -> count(ctx.getSource())))
