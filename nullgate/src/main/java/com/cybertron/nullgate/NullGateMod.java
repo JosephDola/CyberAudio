@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 public final class NullGateMod implements ModInitializer {
@@ -89,16 +90,16 @@ public final class NullGateMod implements ModInitializer {
             return 0;
         }
 
-        BlockPos portal = findNearestPortal(player.serverLevel(), player.blockPosition(), 6);
+        BlockPos portal = findNearestPortal(player.level(), player.blockPosition(), 6);
         if (portal == null) {
             source.sendFailure(Component.literal("No Nether portal found within 6 blocks."));
             return 0;
         }
 
         String targetDimension = dimensionName(targetKey);
-        int blocks = PortalLinkManager.bindPortal(player.serverLevel(), portal, new PortalTarget(targetDimension, x, y, z));
+        int blocks = PortalLinkManager.bindPortal(player.level(), portal, new PortalTarget(targetDimension, x, y, z));
         source.sendSuccess(() -> Component.literal("§5NULL §8// §fPortal bound to §d" + targetDimension + " §f@ §d" + clean(x) + " " + clean(y) + " " + clean(z) + " §8(" + blocks + " portal blocks)"), false);
-        player.serverLevel().sendParticles(ParticleTypes.REVERSE_PORTAL, portal.getX() + 0.5, portal.getY() + 1.0, portal.getZ() + 0.5, 80, 0.7, 1.0, 0.7, 0.08);
+        player.level().sendParticles(ParticleTypes.REVERSE_PORTAL, portal.getX() + 0.5, portal.getY() + 1.0, portal.getZ() + 0.5, 80, 0.7, 1.0, 0.7, 0.08);
         return 1;
     }
 
@@ -111,12 +112,12 @@ public final class NullGateMod implements ModInitializer {
             return 0;
         }
 
-        BlockPos portal = findNearestPortal(player.serverLevel(), player.blockPosition(), 6);
+        BlockPos portal = findNearestPortal(player.level(), player.blockPosition(), 6);
         if (portal == null) {
             source.sendFailure(Component.literal("No Nether portal found within 6 blocks."));
             return 0;
         }
-        int removed = PortalLinkManager.unbindPortal(player.serverLevel(), portal);
+        int removed = PortalLinkManager.unbindPortal(player.level(), portal);
         if (removed == 0) {
             source.sendFailure(Component.literal("That portal is not bound."));
             return 0;
@@ -133,12 +134,12 @@ public final class NullGateMod implements ModInitializer {
             source.sendFailure(Component.literal("This command must be run by a player."));
             return 0;
         }
-        BlockPos portal = findNearestPortal(player.serverLevel(), player.blockPosition(), 6);
+        BlockPos portal = findNearestPortal(player.level(), player.blockPosition(), 6);
         if (portal == null) {
             source.sendFailure(Component.literal("No Nether portal found within 6 blocks."));
             return 0;
         }
-        PortalTarget target = PortalLinkManager.get(player.serverLevel(), portal);
+        PortalTarget target = PortalLinkManager.get(player.level(), portal);
         if (target == null) {
             source.sendSuccess(() -> Component.literal("§7Portal found, but it has no NULL route."), false);
         } else {
@@ -168,7 +169,7 @@ public final class NullGateMod implements ModInitializer {
     }
 
     private static PortalTarget portalTargetAtPlayer(ServerPlayer player) {
-        ServerLevel level = player.serverLevel();
+        ServerLevel level = player.level();
         BlockPos base = player.blockPosition();
         PortalTarget target = PortalLinkManager.get(level, base);
         if (target == null) target = PortalLinkManager.get(level, base.above());
@@ -182,7 +183,7 @@ public final class NullGateMod implements ModInitializer {
             player.sendSystemMessage(Component.literal("§cNULL route failed: invalid target dimension."));
             return;
         }
-        ServerLevel level = player.getServer().getLevel(key);
+        ServerLevel level = player.level().getServer().getLevel(key);
         if (level == null) {
             player.sendSystemMessage(Component.literal("§cNULL route failed: target dimension unavailable."));
             return;
@@ -194,11 +195,11 @@ public final class NullGateMod implements ModInitializer {
             safe = makeEmergencyPad(level, requested);
         }
 
-        ServerLevel old = player.serverLevel();
+        ServerLevel old = player.level();
         old.sendParticles(ParticleTypes.REVERSE_PORTAL, player.getX(), player.getY() + 1.0, player.getZ(), 60, 0.5, 0.8, 0.5, 0.08);
         old.playSound(null, player.blockPosition(), SoundEvents.PORTAL_TRAVEL, SoundSource.PLAYERS, 0.7f, 1.2f);
 
-        player.teleportTo(level, safe.getX() + 0.5, safe.getY(), safe.getZ() + 0.5, player.getYRot(), player.getXRot());
+        player.teleportTo(level, safe.getX() + 0.5, safe.getY(), safe.getZ() + 0.5, Set.of(), player.getYRot(), player.getXRot(), false);
         player.setDeltaMovement(0, 0, 0);
         player.fallDistance = 0;
         player.sendSystemMessage(Component.literal("§5NULL §8// §fRoute complete → §d" + target.dimension() + " §f@ §d" + safe.getX() + " " + safe.getY() + " " + safe.getZ()), true);
